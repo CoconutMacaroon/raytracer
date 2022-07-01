@@ -10,8 +10,8 @@ import static org.blastoffnetwork.Util.subtract;
 
 public class Main {
     static final Color BACKGROUND_COLOR = new Color(255, 255, 255);
-    static final int CANVAS_WIDTH = 4096;
-    static final int CANVAS_HEIGHT = 4096;
+    static final int CANVAS_WIDTH = 2048;
+    static final int CANVAS_HEIGHT = 2048;
     static final double D = 1;
     static final double VIEWPORT_WIDTH = 1;
     static final double VIEWPORT_HEIGHT = 1;
@@ -22,12 +22,10 @@ public class Main {
         x = CANVAS_WIDTH / 2 + x;
         y = CANVAS_HEIGHT / 2 - y - 1;
         if (x < 0 || x >= CANVAS_WIDTH || y < 0 || y >= CANVAS_HEIGHT) {
-
             return;
         }
         image.setRGB(x, y, color.getRGB());
     }
-
     public static double[] canvasToViewport(int x, int y) {
         return new double[]{
             x * VIEWPORT_WIDTH / CANVAS_WIDTH,
@@ -45,11 +43,6 @@ public class Main {
     public static void main(String[] args) {
         BufferedImage image = new BufferedImage(CANVAS_WIDTH, CANVAS_HEIGHT, BufferedImage.TYPE_INT_RGB);
         long startTime = System.nanoTime();
-        /*for (int x = -CANVAS_WIDTH; x < CANVAS_WIDTH; ++x) {
-            for (int y = -CANVAS_HEIGHT; y < CANVAS_HEIGHT; ++y) {
-                renderPixel(x, y, image);
-            }
-        }*/
 
         Pixel[] pixelsToRender = new Pixel[2 * CANVAS_WIDTH * 2 * CANVAS_HEIGHT];
 
@@ -60,31 +53,22 @@ public class Main {
                 counter++;
             }
         }
-        Arrays.stream(pixelsToRender).parallel().forEach(pixel -> renderPixel(pixel.x, pixel.y, image));
+        Arrays
+            .stream(pixelsToRender)
+            .parallel()
+            .forEach(
+                pixel -> renderPixel(pixel.x, pixel.y, image)
+            );
         long duration = (System.nanoTime() - startTime);
 
         System.out.printf("Execution time (MS) %f", duration / 1000000.0);
         //displayImage(image);
-
-
-        /*
-         for(SellerNames sellerNames : sellerDataList) {
-        for(String selleName : sellerNames) {
-        //getSellerAddress(sellerName)
-        //parallize this task
-        }
     }
 
-        sellerDataList.stream().forEach(sellerNames -> {
-        Stream<String> stream = StreamSupport.stream(sellerNames.spliterator(), true); // true means use parallel stream
-        stream.forEach(sellerName -> {
-            getSellerAddress(sellerName);
-        });
-    });
-         */
-    }
-
-    private static Color traceRay(double[] cameraPosition, double[] d, double min_t, double max_t) {
+    private static Color traceRay(double[] cameraPosition,
+                                  double[] d,
+                                  double min_t,
+                                  double max_t) {
         double closest_t = inf;
         Sphere closestSphere = null;
         for (Sphere sphere : Scene.spheres) {
