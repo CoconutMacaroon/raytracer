@@ -5,7 +5,20 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.InvalidClassException;
 
+import static java.lang.Math.sqrt;
+
 public class Util {
+    static int roundColor(double colorValue) {
+        return Math.round(colorValue) > 255 ? 255 : (int) Math.round(colorValue);
+    }
+    private Util() throws InvalidClassException {
+        throw new InvalidClassException("Don't make an instance of this");
+    }
+
+    static double length(double[] vec) {
+        return sqrt(dot(vec, vec));
+    }
+
     static void displayImage(BufferedImage image) {
         JFrame frame = new JFrame("Raytracer");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -21,22 +34,11 @@ public class Util {
         frame.pack();
         frame.setVisible(true);
     }
-    private Util() throws InvalidClassException {
-        throw new InvalidClassException("Don't make an instance of this");
-    }
 
     static boolean inRange(double n, double a, double b) {
         return a < n && n < b;
     }
 
-    static double[] subtract(double[] a, double[] b) {
-        assert a.length == b.length;
-        double[] result = new double[a.length];
-        for (int i = 0; i < a.length; i++) {
-            result[i] = a[i] - b[i];
-        }
-        return result;
-    }
 
     static double dot(double[] a, double[] b) {
         double result = 0.0;

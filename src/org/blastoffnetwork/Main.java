@@ -5,13 +5,14 @@ import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
 import static java.lang.Math.sqrt;
-import static org.blastoffnetwork.Util.dot;
-import static org.blastoffnetwork.Util.subtract;
+import static org.blastoffnetwork.ArrMath.*;
+import static org.blastoffnetwork.Util.*;
+
 
 public class Main {
     static final Color BACKGROUND_COLOR = new Color(255, 255, 255);
-    static final int CANVAS_WIDTH = 2048;
-    static final int CANVAS_HEIGHT = 2048;
+    static final int CANVAS_WIDTH = 600;
+    static final int CANVAS_HEIGHT = 600;
     static final double D = 1;
     static final double VIEWPORT_WIDTH = 1;
     static final double VIEWPORT_HEIGHT = 1;
@@ -26,6 +27,7 @@ public class Main {
         }
         image.setRGB(x, y, color.getRGB());
     }
+
     public static double[] canvasToViewport(int x, int y) {
         return new double[]{
             x * VIEWPORT_WIDTH / CANVAS_WIDTH,
@@ -62,7 +64,7 @@ public class Main {
         long duration = (System.nanoTime() - startTime);
 
         System.out.printf("Execution time (MS) %f", duration / 1000000.0);
-        //displayImage(image);
+        displayImage(image);
     }
 
     private static Color traceRay(double[] cameraPosition,
@@ -86,7 +88,16 @@ public class Main {
         if (closestSphere == null) {
             return BACKGROUND_COLOR;
         }
-        return closestSphere.color;
+        // return closestSphere.color;
+        double[] P = add(cameraPosition, multiply(closest_t, d));
+        double[] N = subtract(P, closestSphere.center);
+        N = multiply(1.0 / length(N), N);
+        double lighting = computeLighting(P, N);
+        return new Color(
+            roundColor(closestSphere.color.getRed() * lighting),
+            roundColor(closestSphere.color.getGreen() * lighting),
+            roundColor(closestSphere.color.getBlue() * lighting)
+        );
     }
 
     private static double[] intersectRaySphere(double[] cameraPosition, double[] d, Sphere sphere) {
@@ -110,5 +121,27 @@ public class Main {
             (-b + discriminantSqrt) / (2 * a),
             (-b - discriminantSqrt) / (2 * a)
         };
+    }
+
+    static double computeLighting(double[] P, double[] N) {
+        double intensity = 0.0;
+        for (Light light : Scene.lights) {
+            if (light.lightType == Light.LIGHT_TYPE_AMBIENT) {
+                intensity += light.intensity;
+            } else {
+                double[] L;
+                if (light.lightType == Light.LIGHT_TYPE_POINT) {
+                    L = subtract(light.position, P);
+                } else {
+                    L = light.direction;
+                }
+                double n_dot_l = dot(N, L);
+
+                if (n_dot_l > 0) {
+                    intensity += light.intensity * n_dot_l / (length(N) * length(L));
+                }
+            }
+        }
+        return intensity;
     }
 }
