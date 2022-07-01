@@ -8,11 +8,12 @@ import java.io.InvalidClassException;
 import static java.lang.Math.sqrt;
 
 public class Util {
-    static int roundColor(double colorValue) {
-        return Math.round(colorValue) > 255 ? 255 : (int) Math.round(colorValue);
-    }
     private Util() throws InvalidClassException {
         throw new InvalidClassException("Don't make an instance of this");
+    }
+
+    static int roundColor(double colorValue) {
+        return Math.round(colorValue) > 255 ? 255 : (int) Math.round(colorValue);
     }
 
     static double length(double[] vec) {
@@ -23,23 +24,18 @@ public class Util {
         JFrame frame = new JFrame("Raytracer");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(
-            new JLabel(
-                new ImageIcon(
-                    image
-                )
-            ),
-            BorderLayout.CENTER
+                new JLabel(
+                        new ImageIcon(
+                                image
+                        )
+                ),
+                BorderLayout.CENTER
         );
         frame.setLocationRelativeTo(null);
         frame.pack();
         frame.setVisible(true);
     }
-
-    static boolean inRange(double n, double a, double b) {
-        return a < n && n < b;
-    }
-
-
+    
     static double dot(double[] a, double[] b) {
         double result = 0.0;
         for (int i = 0; i < a.length; i++)
