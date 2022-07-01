@@ -11,7 +11,7 @@ import static org.blastoffnetwork.Util.*;
 
 
 public class Main {
-    static final Color BACKGROUND_COLOR = new Color(255, 255, 255);
+    static final Color BACKGROUND_COLOR = new Color(0, 0, 0);
     static final int CANVAS_WIDTH = 1024;
     static final int CANVAS_HEIGHT = 1024;
     static final double D = 1;
@@ -19,7 +19,7 @@ public class Main {
     static final double VIEWPORT_HEIGHT = 1;
     static final int inf = Integer.MAX_VALUE;
     static double[] cameraPosition = new double[]{0, 0, 0};
-
+    static final int RECURSION_DEPTH_FOR_REFLECTIONS = 8;
     static void putPixel(int x, int y, Color color, BufferedImage image) {
         x = CANVAS_WIDTH / 2 + x;
         y = CANVAS_HEIGHT / 2 - y - 1;
@@ -39,7 +39,7 @@ public class Main {
 
     static void renderPixel(int x, int y, BufferedImage frame) {
         double[] D = canvasToViewport(x, y);
-        Color color = traceRay(cameraPosition, D, 1, inf);
+        Color color = traceRay(cameraPosition, D, 1, inf, RECURSION_DEPTH_FOR_REFLECTIONS);
         putPixel(x, y, color, frame);
     }
 
@@ -71,7 +71,7 @@ public class Main {
     private static Color traceRay(double[] cameraPosition,
                                   double[] d,
                                   double min_t,
-                                  double max_t) {
+                                  double max_t, int recursion_depth) {
         IntersectionData intersectionData = closestIntersection(cameraPosition, d, min_t, max_t);
         if (intersectionData.sphere == null) {
             return BACKGROUND_COLOR;
@@ -82,10 +82,24 @@ public class Main {
         double[] N = subtract(P, intersectionData.sphere.center);
         N = multiply(1.0 / length(N), N);
         double lighting = computeLighting(P, N, multiply(-1.0, d), intersectionData.sphere.specular);
-        return new Color(
+        Color localColor = new Color(
                 roundColor(intersectionData.sphere.color.getRed() * lighting),
                 roundColor(intersectionData.sphere.color.getGreen() * lighting),
                 roundColor(intersectionData.sphere.color.getBlue() * lighting)
+        );
+
+        double r = intersectionData.sphere.reflectiveness;
+        if (recursion_depth <= 0 || r <= 0) {
+            return localColor;
+        }
+        double[] R = reflectRay(multiply(-1.0, d), N);
+
+        Color reflectedColor = traceRay(P, R, 0.001, inf, recursion_depth - 1);
+
+        return new Color(
+                roundColor(localColor.getRed() * (1 - r) + reflectedColor.getRed() * r),
+                roundColor(localColor.getGreen() * (1 - r) + reflectedColor.getGreen() * r),
+                roundColor(localColor.getBlue() * (1 - r) + reflectedColor.getBlue() * r)
         );
     }
 
@@ -149,7 +163,7 @@ public class Main {
                 // shadow check
                 IntersectionData intersectionData = closestIntersection(P, L, 0.001, t_max);
 
-                if(intersectionData.sphere != null) {
+                if (intersectionData.sphere != null) {
                     continue;
                 }
                 // diffuse
@@ -172,5 +186,9 @@ public class Main {
             }
         }
         return intensity;
+    }
+
+    static double[] reflectRay(double[] R, double[] N) {
+        return subtract(multiply(dot(N, R), multiply(2, N)), R);
     }
 }
