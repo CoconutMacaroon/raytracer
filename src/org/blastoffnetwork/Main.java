@@ -72,32 +72,20 @@ public class Main {
                                   double[] d,
                                   double min_t,
                                   double max_t) {
-        double closest_t = inf;
-        Sphere closestSphere = null;
-        for (Sphere sphere : Scene.spheres) {
-            double[] t = intersectRaySphere(cameraPosition, d, sphere);
-            if (t[0] < closest_t && min_t < t[0] && t[0] < max_t) {
-                closest_t = t[0];
-                closestSphere = sphere;
-            }
-            if (t[1] < closest_t && min_t < t[1] && t[1] < max_t) {
-                closest_t = t[1];
-                closestSphere = sphere;
-            }
-
-        }
-        if (closestSphere == null) {
+        IntersectionData intersectionData = closestIntersection(cameraPosition, d, min_t, max_t);
+        if (intersectionData.sphere == null) {
             return BACKGROUND_COLOR;
         }
+
         // return closestSphere.color;
-        double[] P = add(cameraPosition, multiply(closest_t, d));
-        double[] N = subtract(P, closestSphere.center);
+        double[] P = add(cameraPosition, multiply(intersectionData.closest_t, d));
+        double[] N = subtract(P, intersectionData.sphere.center);
         N = multiply(1.0 / length(N), N);
-        double lighting = computeLighting(P, N, multiply(-1.0, d), closestSphere.specular);
+        double lighting = computeLighting(P, N, multiply(-1.0, d), intersectionData.sphere.specular);
         return new Color(
-                roundColor(closestSphere.color.getRed() * lighting),
-                roundColor(closestSphere.color.getGreen() * lighting),
-                roundColor(closestSphere.color.getBlue() * lighting)
+                roundColor(intersectionData.sphere.color.getRed() * lighting),
+                roundColor(intersectionData.sphere.color.getGreen() * lighting),
+                roundColor(intersectionData.sphere.color.getBlue() * lighting)
         );
     }
 
@@ -124,6 +112,24 @@ public class Main {
         };
     }
 
+    static IntersectionData closestIntersection(double[] cameraPosition, double[] d, double t_min, double t_max) {
+        double closest_t = inf;
+        Sphere closestSphere = null;
+        for (Sphere sphere : Scene.spheres) {
+            double[] t = intersectRaySphere(cameraPosition, d, sphere);
+            if (t[0] < closest_t && t_min < t[0] && t[0] < t_max) {
+                closest_t = t[0];
+                closestSphere = sphere;
+            }
+            if (t[1] < closest_t && t_min < t[1] && t[1] < t_max) {
+                closest_t = t[1];
+                closestSphere = sphere;
+            }
+
+        }
+        return new IntersectionData(closest_t, closestSphere);
+    }
+
     static double computeLighting(double[] P, double[] N, double[] V, double s) {
         double intensity = 0.0;
         for (Light light : Scene.lights) {
@@ -131,12 +137,21 @@ public class Main {
                 intensity += light.intensity;
             } else {
                 double[] L;
+                double t_max;
                 if (light.lightType == Light.LIGHT_TYPE_POINT) {
                     L = subtract(light.position, P);
+                    t_max = 1.0;
                 } else {
                     L = light.direction;
+                    t_max = inf;
                 }
 
+                // shadow check
+                IntersectionData intersectionData = closestIntersection(P, L, 0.001, t_max);
+
+                if(intersectionData.sphere != null) {
+                    continue;
+                }
                 // diffuse
                 double n_dot_l = dot(N, L);
 
