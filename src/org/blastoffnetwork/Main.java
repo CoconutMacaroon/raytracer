@@ -17,9 +17,10 @@ public class Main {
     static final double D = 1;
     static final double VIEWPORT_WIDTH = 1;
     static final double VIEWPORT_HEIGHT = 1;
-    static final int inf = Integer.MAX_VALUE;
-    static double[] cameraPosition = new double[]{0, 0, 0};
+    static final double inf = Double.MAX_VALUE;
     static final int RECURSION_DEPTH_FOR_REFLECTIONS = 8;
+    static double[] cameraPosition = new double[]{0, 0, 0};
+
     static void putPixel(int x, int y, Color color, BufferedImage image) {
         x = CANVAS_WIDTH / 2 + x;
         y = CANVAS_HEIGHT / 2 - y - 1;
@@ -166,6 +167,7 @@ public class Main {
                 if (intersectionData.sphere != null) {
                     continue;
                 }
+
                 // diffuse
                 double n_dot_l = dot(N, L);
 
@@ -176,7 +178,7 @@ public class Main {
                 // specular
                 if (s != -1) {
                     // 2 * N * dot(N, L) - L
-                    double[] R = subtract(multiply(dot(N, L), multiply(2, N)), L);
+                    double[] R = reflectRay(L, N);
                     double r_dot_v = dot(R, V);
 
                     if (r_dot_v > 0) {
