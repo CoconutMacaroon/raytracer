@@ -18,7 +18,7 @@ public class Main {
     static final double VIEWPORT_WIDTH = 1;
     static final double VIEWPORT_HEIGHT = 1;
     static final double inf = Double.MAX_VALUE;
-    static final int RECURSION_DEPTH_FOR_REFLECTIONS = 8;
+    static final int RECURSION_DEPTH_FOR_REFLECTIONS = 4;
     static double[] cameraPosition = new double[]{0, 0, 0};
 
     static void putPixel(int x, int y, Color color, BufferedImage image) {
@@ -53,8 +53,7 @@ public class Main {
         int counter = 0;
         for (int x = -CANVAS_WIDTH; x < CANVAS_WIDTH; ++x) {
             for (int y = -CANVAS_HEIGHT; y < CANVAS_HEIGHT; ++y) {
-                pixelsToRender[counter] = new Pixel(x, y);
-                counter++;
+                pixelsToRender[counter++] = new Pixel(x, y);
             }
         }
         Arrays
@@ -191,6 +190,10 @@ public class Main {
     }
 
     static double[] reflectRay(double[] R, double[] N) {
-        return subtract(multiply(dot(N, R), multiply(2, N)), R);
+        return subtract(
+                multiply(
+                        dot(N, R),
+                        multiply(2, N)),
+                R);
     }
 }

@@ -17,7 +17,7 @@ public class Util {
     }
 
     static double length(double[] vec) {
-        return sqrt(dot(vec, vec));
+        return (double) sqrt(dot(vec, vec));
     }
 
     static void displayImage(BufferedImage image) {
@@ -37,7 +37,7 @@ public class Util {
     }
     
     static double dot(double[] a, double[] b) {
-        double result = 0.0;
+        double result = 0.0f;
         for (int i = 0; i < a.length; i++)
             result += a[i] * b[i];
         return result;
